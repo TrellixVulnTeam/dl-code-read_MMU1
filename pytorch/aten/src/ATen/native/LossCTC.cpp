@@ -37,6 +37,8 @@ template<typename scalar_t, ScalarType target_scalar_type>
 std::tuple<Tensor, Tensor> ctc_loss_cpu_template(const Tensor& log_probs, const Tensor& targets, IntArrayRef input_lengths, IntArrayRef target_lengths, int64_t BLANK) {
   // log_probs: input_len x batch_size x num_labels
   // targets [int64]: batch_size x target_length OR sum(target_lengths)
+  // input_lengths: input seq length, batch_size x max_feature_length
+  // target_lengths: output text label length, batch_size x seq_legnth 
   constexpr scalar_t neginf = -std::numeric_limits<scalar_t>::infinity();
   using target_t = typename std::conditional<target_scalar_type == kInt, int, int64_t>::type;
 
@@ -55,7 +57,7 @@ std::tuple<Tensor, Tensor> ctc_loss_cpu_template(const Tensor& log_probs, const 
 
   size_t tg_target_stride;
   int64_t max_target_length = 0;
-  std::vector<int64_t> tg_batch_offsets(batch_size);
+  std::vector<int64_t> tg_batch_offsets(batch_size); // 用于记录每个batch_size的其实target_legnth offset
   if (targets.dim() == 1) { // concatenated targets
     int64_t pos = 0;
     for (int64_t i = 0; i < batch_size; i++) {
@@ -64,6 +66,7 @@ std::tuple<Tensor, Tensor> ctc_loss_cpu_template(const Tensor& log_probs, const 
       if (max_target_length < target_lengths[i])
          max_target_length = target_lengths[i];
     }
+    //Stride is the jump necessary to go from one element to the next one in the specified dimension dim.
     tg_target_stride = targets.stride(0);
     checkSize(c, targets_arg, 0, pos);
   }
