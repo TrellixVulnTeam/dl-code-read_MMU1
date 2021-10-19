@@ -1,0 +1,10 @@
+[submodule "third_party/pybind11"]
+	path = third_party/pybind11
+	url = https://hub.fastgit.org/pybind/pybind11.git
+[submodule "third_party/libuv"]
+	path = third_party/libuv
+	url = https://hub.fastgit.org/libuv/libuv.git
+	branch = v1.x
+[submodule "third_party/googletest"]
+	path = third_party/googletest
+	url = https://hub.fastgit.org/google/googletest.git

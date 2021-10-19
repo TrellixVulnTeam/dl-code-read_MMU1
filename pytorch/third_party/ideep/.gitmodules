@@ -1,0 +1,3 @@
+[submodule "mkl-dnn"]
+	path = mkl-dnn
+	url = https://hub.fastgit.org/intel/mkl-dnn.git

@@ -1,0 +1,7 @@
+[submodule "third_party/benchmark"]
+	path = third_party/benchmark
+	url = https://hub.fastgit.org/google/benchmark.git
+[submodule "third_party/googletest"]
+	path = third_party/googletest
+	url = https://hub.fastgit.org/google/googletest.git
+	ignore = dirty
