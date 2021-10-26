@@ -14,7 +14,7 @@ class SGD(Optimizer):
         lr (float): learning rate
         momentum (float, optional): momentum factor (default: 0)
         weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
-        dampening (float, optional): dampening for momentum (default: 0)
+        dampening (float, optional): dampening for momentum (default: 0) 动量的惩罚
         nesterov (bool, optional): enables Nesterov momentum (default: False)
 
     Example:
@@ -94,21 +94,24 @@ class SGD(Optimizer):
             for p in group['params']:
                 if p.grad is None:
                     continue
-                d_p = p.grad
+                d_p = p.grad # p为当前参数,p.grad记为梯度. 
                 if weight_decay != 0:
+                    # 如果有weight_decay的话先对p做weight_decay,这里注意是+
                     d_p = d_p.add(p, alpha=weight_decay)
                 if momentum != 0:
-                    param_state = self.state[p]
+                    param_state = self.state[p] # param_state也就是对应参数的参数.
                     if 'momentum_buffer' not in param_state:
                         buf = param_state['momentum_buffer'] = torch.clone(d_p).detach()
                     else:
                         buf = param_state['momentum_buffer']
+                        # 获取动量后,对buf做操作，并且同步更新, （t时刻的v乘以momentum + t+1时刻的梯度）
                         buf.mul_(momentum).add_(d_p, alpha=1 - dampening)
                     if nesterov:
+                        # 如果使用nesterov则需要更正方向，也就是说d_p 需要使用buf来纠正方向
                         d_p = d_p.add(buf, alpha=momentum)
                     else:
                         d_p = buf
-
+                # 最后就是 t + 1的权重等于  t 时刻的权重  - 学习率 * 权重
                 p.add_(d_p, alpha=-group['lr'])
 
         return loss
