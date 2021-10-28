@@ -79,7 +79,23 @@ class Adagrad(Optimizer):
 
                 clr = group['lr'] / (1 + (state['step'] - 1) * group['lr_decay'])
 
+                # >>> i = [[1, 1]]
+                # >>> v =  [3, 4]
+                # >>> s=torch.sparse_coo_tensor(i, v, (3,))
+                # >>> s
+                # tensor(indices=tensor([[1, 1]]),
+                #     values=tensor(  [3, 4]),
+                #     size=(3,), nnz=2, layout=torch.sparse_coo)
+                # sparse tensor的layout就是torch.sparse_coo
+                
+
                 if grad.is_sparse:
+                    
+                    # the coalescing process will accumulate the multi-valued elements into a single value using summation:
+                    # >>> s.coalesce()
+                    # tensor(indices=tensor([[1]]),
+                    #     values=tensor([7]),
+                    #     size=(3,), nnz=1, layout=torch.sparse_coo)
                     grad = grad.coalesce()  # the update is non-linear so indices must be unique
                     grad_indices = grad._indices()
                     grad_values = grad._values()
@@ -90,13 +106,16 @@ class Adagrad(Optimizer):
                         if grad_indices.dim() == 0 or values.dim() == 0:
                             return constructor().resize_as_(grad)
                         return constructor(grad_indices, values, size)
+                    # state中获取梯度的和
                     state['sum'].add_(make_sparse(grad_values.pow(2)))
                     std = state['sum'].sparse_mask(grad)
+                    # 来获取std的sqrt
                     std_values = std._values().sqrt_().add_(group['eps'])
                     p.add_(make_sparse(grad_values / std_values), alpha=-clr)
                 else:
                     state['sum'].addcmul_(grad, grad, value=1)
                     std = state['sum'].sqrt().add_(group['eps'])
+                    # 也就是对应的公式
                     p.addcdiv_(grad, std, value=-clr)
 
         return loss
