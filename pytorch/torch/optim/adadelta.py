@@ -62,7 +62,7 @@ class Adadelta(Optimizer):
                     state['step'] = 0
                     state['square_avg'] = torch.zeros_like(p, memory_format=torch.preserve_format)
                     state['acc_delta'] = torch.zeros_like(p, memory_format=torch.preserve_format)
-
+                # 相对于Adagrad只是改变了E[g^2]_t的计算方式
                 square_avg, acc_delta = state['square_avg'], state['acc_delta']
                 rho, eps = group['rho'], group['eps']
 
@@ -70,10 +70,14 @@ class Adadelta(Optimizer):
 
                 if group['weight_decay'] != 0:
                     grad = grad.add(p, alpha=group['weight_decay'])
-
+                # 更新E[g^2]_t
                 square_avg.mul_(rho).addcmul_(grad, grad, value=1 - rho)
+                
+                # 计算\Delta\theta_t
                 std = square_avg.add(eps).sqrt_()
                 delta = acc_delta.add(eps).sqrt_().div_(std).mul_(grad)
+                
+                # 更新t+1 step的theta
                 p.add_(delta, alpha=-group['lr'])
                 acc_delta.mul_(rho).addcmul_(delta, delta, value=1 - rho)
 
