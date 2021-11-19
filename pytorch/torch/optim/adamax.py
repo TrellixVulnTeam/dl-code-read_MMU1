@@ -63,7 +63,7 @@ class Adamax(Optimizer):
                     state['step'] = 0
                     state['exp_avg'] = torch.zeros_like(p, memory_format=torch.preserve_format)
                     state['exp_inf'] = torch.zeros_like(p, memory_format=torch.preserve_format)
-
+                # exp_avg, exp_inf分别代表 m_t和u_t，u_t是inf范数，所以用exp_inf表示
                 exp_avg, exp_inf = state['exp_avg'], state['exp_inf']
                 beta1, beta2 = group['betas']
                 eps = group['eps']
@@ -74,8 +74,10 @@ class Adamax(Optimizer):
                     grad = grad.add(p, alpha=group['weight_decay'])
 
                 # Update biased first moment estimate.
+                # 更新m_t
                 exp_avg.mul_(beta1).add_(grad, alpha=1 - beta1)
                 # Update the exponentially weighted infinity norm.
+                # 更新u_t, 注意下面求max的操作是可以在别的代码中复用的，这是求max的一个方式.
                 norm_buf = torch.cat([
                     exp_inf.mul_(beta2).unsqueeze(0),
                     grad.abs().add_(eps).unsqueeze_(0)

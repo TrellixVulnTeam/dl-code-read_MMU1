@@ -109,6 +109,7 @@ class AdamW(Optimizer):
                     # Use the max. for normalizing running avg. of gradient
                     denom = (max_exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(group['eps'])
                 else:
+                    # 这里就是除以\sqrt{s} 
                     denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(group['eps'])
 
                 step_size = group['lr'] / bias_correction1
